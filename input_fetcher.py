@@ -12,8 +12,12 @@ def fetch_day(number: int) -> str:
 
 
 if __name__ == "__main__":
+    date = datetime.now()
     input_path: str = os.path.join(os.getcwd(), "inputs")
-    current_day: int = datetime.now().day
+    current_day: int = date.day
+
+    if date.month != 12 or date.year > 2019 or date.day > 25:
+        current_day = 25
 
     if not os.path.exists(input_path):
         os.mkdir(input_path)
