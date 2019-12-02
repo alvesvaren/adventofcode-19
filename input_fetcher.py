@@ -11,10 +11,6 @@ def fetch_day(number: int) -> str:
     return requests.get(f"https://adventofcode.com/2019/day/{number}/input", cookies=config["getInput"]["cookies"]).text
 
 
-def get_input_data(day: int) -> str:
-    with open(f'./inputs/{day}.txt') as file:
-        return file.read()
-
 if __name__ == "__main__":
     input_path: str = os.path.join(os.getcwd(), "inputs")
     current_day: int = datetime.now().day
