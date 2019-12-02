@@ -7,8 +7,13 @@ with open("config.json") as file:
     config = json.load(file)
 
 
-def get_day(number: int) -> str:
+def fetch_day(number: int) -> str:
     return requests.get(f"https://adventofcode.com/2019/day/{number}/input", cookies=config["getInput"]["cookies"]).text
+
+
+def get_input_data(day: int) -> str:
+    with open(f'./inputs/{day}.txt') as file:
+        return file.read()
 
 if __name__ == "__main__":
     input_path: str = os.path.join(os.getcwd(), "inputs")
@@ -26,4 +31,4 @@ if __name__ == "__main__":
     if last_day_downloaded < current_day:
         for i in range(last_day_downloaded, current_day+1):
             with open(f"./inputs/{i}.txt", "w") as file:
-                file.write(get_day(i))
+                file.write(fetch_day(i))
