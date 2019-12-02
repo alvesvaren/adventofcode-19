@@ -15,7 +15,6 @@ for module in data:
     while current_fuel_added > 6:
         current_fuel_added = get_fuel(current_fuel_added)
         total_fuel += current_fuel_added
-        print(current_fuel_added)
     module_fuels.append(total_fuel)
 
 
