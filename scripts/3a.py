@@ -38,5 +38,4 @@ for wire in data:
 
 intersections = positions[0] & positions[1]
 intersections.remove((0, 0))
-
-print(sum(min(intersections, key=lambda x: sum((abs(x[0]), abs(x[1]))))))
+print(min([abs(x) + abs(y) for (x, y) in intersections]))
