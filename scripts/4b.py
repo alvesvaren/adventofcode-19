@@ -5,14 +5,14 @@ data = tuple(map(int, get_input_data(4).rstrip().split("-")))
 passwords = set()
 for password in range(*data):
     password = str(password)
-    has_double=False
-    does_not_decrease=True
+    has_double = False
+    does_not_decrease = True
     for i in range(len(password)-1):
         if password[i] == password[i+1]:
             has_double = True
         if password[i] > password[i+1]:
             does_not_decrease = False
-        
+
     if has_double and does_not_decrease:
         passwords.add(password)
 
@@ -22,8 +22,8 @@ for password in passwords:
     for i in range(len(password)-1):
         if password[i] == password[i+1]:
             if password[i] in lens:
-                lens[password[i]] +=  1
-                
+                lens[password[i]] += 1
+
             else:
                 lens[password[i]] = 2
     if (2 in lens.values()):
