@@ -2,7 +2,6 @@ from input_manager import get_input_data
 import re
 data = tuple(map(int, get_input_data(4).rstrip().split("-")))
 
-# correct = 1196
 passwords = set()
 for password in range(*data):
     password = str(password)
