@@ -1,5 +1,4 @@
 from input_manager import get_input_data
-from collections import defaultdict
 import math
 data = get_input_data(3).split()
 data = [wire.split(",") for wire in data]
