@@ -1,27 +1,35 @@
 from input_manager import get_input_data
-from collections import defaultdict
 # args = _mem, _input, _output, *params (param(index+2), so param 1 would be 3)
 
+verbose = False
 def _1(_mem, _input, _output, a, b, c):
-    _mem[c] = a + b
+    _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) + \
+        (b[0] if b[1] == 1 else _mem[b[0]])
+
     return _mem, _input, _output
 
+
 def _2(_mem, _input, _output, a, b, c):
-    _mem[c] = a * b
+    _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) * \
+        (b[0] if b[1] == 1 else _mem[b[0]])
     return _mem, _input, _output
 
 # store input at address
+
+
 def _3(_mem, _input, _output, a):
-    _mem[a] = _input
+    _mem[a[0]] = _input.pop(0)
     return _mem, _input, _output
 
 # store param1 as output
+
+
 def _4(_mem, _input, _output, a):
-    _output = a
+    _output.append(_mem[a[0]])
     return _mem, _input, _output
 
 def _99(_mem, _input, _output):
-    print(_output)
+    if verbose: print(_output)
     quit()
 
 
@@ -35,47 +43,49 @@ instructions = {
     99: _99,
 }
 
+
 def params(func) -> int:
     return func.__code__.co_argcount-3
 
-def parse(code: str, _input):
+
+def parse(code: str, _input: list):
     program = [*map(int, code.split(","))]
-    _output = None
+    _output = []
     jump = 0
     next_params = []
-    modes = defaultdict(int)
+    modes = []
     next_instruction = None
     pos = -1
-    while pos < len(program) and (program[pos] != 99 or pos < 0):
-        pos+=1
-        print("current:", program[pos])
+    while pos < len(program)-1 and (program[pos] != 99 or pos < 0):
+        pos += 1
+        if verbose: print("current address:", pos, "("+str(program[pos])+")")
         if jump:
             pass
             jump -= 1
             value = None
-            print("adding argument ", end="")
+            if verbose: print("adding argument ", end="")
             if modes[jump]:
-                value = program[pos]
-                print('"intermediate', str(value) + '"')
+                value = (program[pos]%len(program), 1)
+                if verbose: print('"intermediate', str(value[0]) + '"')
             else:
-                value = program[program[pos]]
-                print('"adress', program[pos], "("+str(value) + ')"')
+                value = (program[pos]%len(program), 0)
+                if verbose: print('"adress', program[pos], "("+str(program[pos]) + ')"')
             next_params.append(value)
             continue
         else:
             if next_instruction:
-                print("running", next_instruction, "with (", *next_params, ")")
-                _mem, _input, _output = next_instruction(program, _input, _output, *next_params)
+                if verbose: print("running", next_instruction, "with (", *next_params, ")")
+                _mem, _input, _output = next_instruction(
+                    program, _input, _output, *next_params)
                 next_params = []
+            
             next_instruction = instructions[int(str(program[pos])[-2:])]
             jump = params(next_instruction)
-    print(_output)
-
-def run(code: str, _input: int):
-    output: list = []
-    pos = 0
-    while pos < len(code) and code[pos] != 99:
-        (re.match(r"(\d)(\d)(\d)(\d\d)", (5*'0')+str(code[pos]))).groups()[1]
+            modes = [*map(int, str(program[pos])[:-2])][::-1]
+            if len(modes) < jump:
+                modes = modes + [0]*(jump-len(modes))
+                pass
+    return _output
 
 
-parse("3,0,4,0,99", 1)  # return a tuple of ints instead of a map object
+print(parse(get_input_data(5), [1]))  # return a tuple of ints instead of a map object
