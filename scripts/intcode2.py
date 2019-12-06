@@ -1,7 +1,7 @@
 from input_manager import get_input_data
 # args = _mem, _input, _output, *params (param(index+2), so param 1 would be 3)
 
-verbose = False
+verbose = True
 def _1(_mem, _input, _output, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) + \
         (b[0] if b[1] == 1 else _mem[b[0]])
@@ -25,7 +25,7 @@ def _3(_mem, _input, _output, a):
 
 
 def _4(_mem, _input, _output, a):
-    _output.append(_mem[a[0]])
+    _output.append(a[0] if a[1] == 1 else _mem[a[0]])
     return _mem, _input, _output
 
 def _99(_mem, _input, _output):
@@ -48,12 +48,13 @@ def params(func) -> int:
     return func.__code__.co_argcount-3
 
 
-def parse(code: str, _input: list):
+def parse(code: str, _input: list=[]):
     program = [*map(int, code.split(","))]
     _output = []
     jump = 0
     next_params = []
     modes = []
+    history = {}
     next_instruction = None
     pos = -1
     while pos < len(program)-1 and (program[pos] != 99 or pos < 0):
@@ -75,6 +76,10 @@ def parse(code: str, _input: list):
         else:
             if next_instruction:
                 if verbose: print("running", next_instruction, "with (", *next_params, ")")
+                history.update({pos: {
+                    "instruction": next_instruction,
+                    "params": next_params,
+                }})
                 _mem, _input, _output = next_instruction(
                     program, _input, _output, *next_params)
                 next_params = []
@@ -88,4 +93,4 @@ def parse(code: str, _input: list):
     return _output
 
 
-print(parse(get_input_data(5), [1]))  # return a tuple of ints instead of a map object
+print(parse("3,0,4,0,99", [1])) #parse(get_input_data(5), [1]))  # return a tuple of ints instead of a map object
