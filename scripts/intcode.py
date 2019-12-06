@@ -92,6 +92,3 @@ def parse(code: str, _input: list=[]):
                 pass
     if verbose: print(_mem)
     return _output
-
-
-print(parse(get_input_data(5), [1]))  # return a tuple of ints instead of a map object
