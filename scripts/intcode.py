@@ -1,37 +1,59 @@
-from input_manager import get_input_data
+
 # args = _mem, _input, _output, *params (param(index+2), so param 1 would be 3)
 
 verbose = False
-def _1(_mem, _input, _output, a, b, c):
+def _1(_mem, _input, _output, pos, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) + \
         (b[0] if b[1] == 1 else _mem[b[0]])
 
-    return _mem, _input, _output
+    return _mem, _input, _output, pos
 
 
-def _2(_mem, _input, _output, a, b, c):
+def _2(_mem, _input, _output, pos, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) * \
         (b[0] if b[1] == 1 else _mem[b[0]])
-    return _mem, _input, _output
+    return _mem, _input, _output, pos
 
 # store input at address
 
 
-def _3(_mem, _input, _output, a):
-    _mem[a[0]] = _input.pop(0)
-    return _mem, _input, _output
+def _3(_mem, _input, _output, pos, a):
+    _mem[a[0]] = _input[0]
+    return _mem, _input, _output, pos
 
 # store param1 as output
 
 
-def _4(_mem, _input, _output, a):
+def _4(_mem, _input, _output, pos, a):
     _output.append(a[0] if a[1] == 1 else _mem[a[0]])
-    return _mem, _input, _output
+    return _mem, _input, _output, pos
 
-def _99(_mem, _input, _output):
+def _5(_mem, _input, _output, pos, a, b):
+    if (a[0] if a[1] == 1 else _mem[a[0]]) != 0:
+        pos = (b[0] if b[1] == 1 else _mem[b[0]])
+    return _mem, _input, _output, pos
+
+def _6(_mem, _input, _output, pos, a, b):
+    if (a[0] if a[1] == 1 else _mem[a[0]]) == 0:
+        pos = (b[0] if b[1] == 1 else _mem[b[0]])
+    return _mem, _input, _output, pos
+
+def _7(_mem, _input, _output, pos, a, b, c):
+    if (a[0] if a[1] == 1 else _mem[a[0]]) < (b[0] if b[1] == 1 else _mem[b[0]]):
+        _mem[c[0]] = 1
+    else:
+        _mem[c[0]] = 0
+    return _mem, _input, _output, pos
+
+def _8(_mem, _input, _output, pos, a, b, c):
+    if (a[0] if a[1] == 1 else _mem[a[0]]) == (b[0] if b[1] == 1 else _mem[b[0]]):
+        _mem[c[0]] = 1
+    else:
+        _mem[c[0]] = 0
+    return _mem, _input, _output, pos
+
+def _99(_mem, _input, _output, pos):
     if verbose: print(_output)
-    quit()
-
 
 # memory, *params -> return
 instructions = {
@@ -39,13 +61,17 @@ instructions = {
     2: _2,
     3: _3,
     4: _4,
+    5: _5,
+    6: _6,
+    7: _7,
+    8: _8,
 
     99: _99,
 }
 
 
 def params(func) -> int:
-    return func.__code__.co_argcount-3
+    return func.__code__.co_argcount-4
 
 
 def parse(code: str, _input: list=[]):
@@ -80,9 +106,12 @@ def parse(code: str, _input: list=[]):
                     "instruction": next_instruction,
                     "params": next_params,
                 }})
-                _mem, _input, _output = next_instruction(
-                    program, _input, _output, *next_params)
+                old_pos = pos
+                _mem, _input, _output, pos = next_instruction(
+                    program, _input, _output, pos, *next_params)
                 next_params = []
+                if old_pos != pos:
+                    if verbose: print("new pos!", pos, "(from", str(old_pos)+")")
             
             next_instruction = instructions[int(str(program[pos])[-2:])]
             jump = params(next_instruction)
@@ -92,3 +121,7 @@ def parse(code: str, _input: list=[]):
                 pass
     if verbose: print(_mem)
     return _output
+
+if __name__ == "__main__":
+    verbose = True
+    print(parse(input("Code: "), [int(input("Input: "))]))
