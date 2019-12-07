@@ -31,7 +31,7 @@ for x in range(5):
             for j in range(5):
                 for k in range(5):
                     modes = [x, y, i, j, k]
-                    if sorted(modes) == [0, 1, 2, 3, 4]:
+                    if len({*modes}) == 5:
                         loops[(*modes,)] = test_modes(modes)[-1].output[-1]
 
 highest = max(loops, key=lambda x: loops[x])
