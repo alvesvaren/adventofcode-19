@@ -2,6 +2,37 @@ import asyncio
 verbose = False
 
 
+class Output:
+    def __init__(self, start_output=[]):
+        super().__init__()
+        self.current_index = 0
+        self.done = False
+        self.output = start_output
+        self.task = asyncio.Event()
+
+    def append(self, item):
+        self.task.set()
+        self.output.append(item)
+
+    def __getitem__(self, index):
+        return self.output[index]
+
+    async def __anext__(self):
+        self.current_index += 1
+        if not len(self.output) > self.current_index:
+            await self.task.wait()
+            self.task.clear()
+        if self.done:
+            raise StopAsyncIteration("The program finished")
+        yield self.output[self.current_index]
+
+    def __iter__(self):
+        return iter(self.output)
+
+    def __repr__(self):
+        return f"Output({self.output})"
+
+
 async def _1(_mem, _input, _output, pos, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) + \
         (b[0] if b[1] == 1 else _mem[b[0]])
@@ -72,16 +103,19 @@ instructions = {
     99: _99,
 }
 
+
 def params(func) -> int:
     return func.__code__.co_argcount-4
+
 
 async def default_generator(inputs: list):
     for item in inputs:
         yield item
 
-async def run(code: str, _input = default_generator):
+
+async def run(code: str, _input=default_generator):
     program = [*map(int, code.split(","))]
-    _output = []
+    _output = Output()
     jump = 0
     next_params = []
     modes = []
@@ -132,25 +166,41 @@ async def run(code: str, _input = default_generator):
             if len(modes) < jump:
                 modes = modes + [0]*(jump-len(modes))
                 pass
+            # yield _output
+    _output.done = True
     if verbose:
         print(_mem)
-    return _output
+    yield _output
+
+
+async def get_list_run(code, _input):
+    data = []
+    async for output in run(code, _input):
+        data.append(output)
+
 
 def parse(code: str, _input: list = []):
     _input = default_generator(_input)
-    return asyncio.run(run(code, _input))
+    return list(asyncio.run(run(code, _input)))
+
 
 class Intcode:
-    def __init__(self, code: str, async_input_generator = default_generator):
+    def __init__(self, code: str, async_input_generator=default_generator):
         super().__init__()
         self.code = code
         self.input_gen = async_input_generator
-        self.output = None
-    
+        self.output = []
+        self.done = False
+
     async def run(self):
-        self.output = await run(self.code, self.input_gen)
+        async for output in run(self.code, self.input_gen):
+            self.output.append(output)
+        # self.output = await run(self.code, self.input_gen)
         return self.output
-        
+
+    async def run_and_get_generator(self):
+        run(self.code)
+
 
 if __name__ == "__main__":
     verbose = True
