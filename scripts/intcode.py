@@ -79,7 +79,7 @@ async def default_generator(inputs: list):
     for item in inputs:
         yield item
 
-async def run(code: str, _input = default_generator):
+async def run(code: str, _input = default_generator, _output_callback = None):
     program = [*map(int, code.split(","))]
     _output = []
     jump = 0
@@ -119,9 +119,12 @@ async def run(code: str, _input = default_generator):
                     "params": next_params,
                 }})
                 old_pos = pos
+                old_output = _output
                 _mem, _input, _output, pos = await next_instruction(
                     program, _input, _output, pos, *next_params)
                 next_params = []
+                if _output_callback and old_output != _output:
+                    await _output_callback(_output)
                 if old_pos != pos:
                     if verbose:
                         print("new pos!", pos, "(from", str(old_pos)+")")
@@ -141,14 +144,15 @@ def parse(code: str, _input: list = []):
     return asyncio.run(run(code, _input))
 
 class Intcode:
-    def __init__(self, code: str, async_input_generator = default_generator):
+    def __init__(self, code: str, async_input_generator = default_generator, output_callback = None):
         super().__init__()
         self.code = code
         self.input_gen = async_input_generator
         self.output = None
+        self.output_callback = output_callback
     
     async def run(self):
-        self.output = await run(self.code, self.input_gen)
+        self.output = await run(self.code, self.input_gen, self.output_callback)
         return self.output
         
 
