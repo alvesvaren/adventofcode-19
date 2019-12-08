@@ -11,11 +11,12 @@ layers = defaultdict(str)
 for i in range(len(data)):
     for y in range(y_w):
         for x in range(x_w):
-            layers[i] += data[i][(y*y_w)+x]
+            layers[i] += data[i][(y*x_w)+x]
         layers[i]+="\n"
 
 layers = [layer.splitlines() for layer in layers.values()]
-final_layer = layers[-1]
+final_layer = ["2"*x_w for i in range(y_w)]
+# print(final_layer)
 for layer in layers[::-1]:
     for y in range(y_w):
         for x in range(x_w):
@@ -26,4 +27,4 @@ for layer in layers[::-1]:
                 final_layer[y][x] = curr_pixel
                 final_layer[y] = "".join(final_layer[y])
 
-print("\n"+"\n".join(final_layer).replace("2", " ").replace("0", ".").replace("1", "X"))
+print("\n"+"\n".join(final_layer).replace("2", "?").replace("0", " ").replace("1", "X"))
