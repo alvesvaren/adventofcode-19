@@ -19,22 +19,34 @@ insts = {
     "D": (-1, 0)
 }
 
-positions = [set(), set()]
+steps = {}
+
+positions = [{}, {}]
 
 wire_id = 0
 for wire in data:
     current_pos = (0, 0)
+    current_steps = -1
     for part in wire:
         old_pos = current_pos
         current_pos = add_coord(current_pos, multiply_with_int(
             int(part[1:]), insts[part[0]]))
         x, y = current_pos
         for x in range(old_pos[0], current_pos[0], sum(insts[part[0]])):
-            positions[wire_id].add((x, y))
+            current_steps+=1
+            if (x,y) in positions[wire_id]:
+                continue
+            positions[wire_id][x,y]=current_steps
+            
         for y in range(old_pos[1], current_pos[1], sum(insts[part[0]])):
-            positions[wire_id].add((x, y))
+            current_steps+=1
+            if (x,y) in positions[wire_id]:
+                continue
+            positions[wire_id][x,y]=current_steps
+            
     wire_id += 1
 
-intersections = positions[0] & positions[1]
-intersections.remove((0, 0))
-print(min([abs(x) + abs(y) for (x, y) in intersections]))
+intersections = positions[0].keys() & positions[1].keys()
+intersections.remove((0,0))
+shortest = min(intersections, key=lambda x: abs(positions[0][x]) + abs(positions[1][x]))
+print(abs(positions[0][shortest]) + abs(positions[1][shortest]))
