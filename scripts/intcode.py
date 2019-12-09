@@ -1,43 +1,43 @@
 import asyncio
 verbose = False
+from copy import copy
 
-
-async def _1(_mem, _input, _output, pos, a, b, c):
+def _1(_mem, _input, _output, pos, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) + \
         (b[0] if b[1] == 1 else _mem[b[0]])
 
     return _mem, _input, _output, pos
 
 
-async def _2(_mem, _input, _output, pos, a, b, c):
+def _2(_mem, _input, _output, pos, a, b, c):
     _mem[c[0]] = (a[0] if a[1] == 1 else _mem[a[0]]) * \
         (b[0] if b[1] == 1 else _mem[b[0]])
     return _mem, _input, _output, pos
 
 
-async def _3(_mem, _input, _output, pos, a):
-    _mem[a[0]] = await _input.__anext__()
+def _3(_mem, _input, _output, pos, a):
+    _mem[a[0]] = next(_input)
     return _mem, _input, _output, pos
 
 
-async def _4(_mem, _input, _output, pos, a):
+def _4(_mem, _input, _output, pos, a):
     _output.append(a[0] if a[1] == 1 else _mem[a[0]])
     return _mem, _input, _output, pos
 
 
-async def _5(_mem, _input, _output, pos, a, b):
+def _5(_mem, _input, _output, pos, a, b):
     if (a[0] if a[1] == 1 else _mem[a[0]]) != 0:
         pos = (b[0] if b[1] == 1 else _mem[b[0]])
     return _mem, _input, _output, pos
 
 
-async def _6(_mem, _input, _output, pos, a, b):
+def _6(_mem, _input, _output, pos, a, b):
     if (a[0] if a[1] == 1 else _mem[a[0]]) == 0:
         pos = (b[0] if b[1] == 1 else _mem[b[0]])
     return _mem, _input, _output, pos
 
 
-async def _7(_mem, _input, _output, pos, a, b, c):
+def _7(_mem, _input, _output, pos, a, b, c):
     if (a[0] if a[1] == 1 else _mem[a[0]]) < (b[0] if b[1] == 1 else _mem[b[0]]):
         _mem[c[0]] = 1
     else:
@@ -45,7 +45,7 @@ async def _7(_mem, _input, _output, pos, a, b, c):
     return _mem, _input, _output, pos
 
 
-async def _8(_mem, _input, _output, pos, a, b, c):
+def _8(_mem, _input, _output, pos, a, b, c):
     if (a[0] if a[1] == 1 else _mem[a[0]]) == (b[0] if b[1] == 1 else _mem[b[0]]):
         _mem[c[0]] = 1
     else:
@@ -53,7 +53,7 @@ async def _8(_mem, _input, _output, pos, a, b, c):
     return _mem, _input, _output, pos
 
 
-async def _99(_mem, _input, _output, pos):
+def _99(_mem, _input, _output, pos):
     if verbose:
         print(_output)
 
@@ -75,11 +75,13 @@ instructions = {
 def params(func) -> int:
     return func.__code__.co_argcount-4
 
-async def default_generator(inputs: list):
-    for item in inputs:
-        yield item
+def default_generator(inputs: list):
+    index = 0
+    while True:
+        yield inputs[index]
+        index += 1
 
-async def run(code: str, _input = default_generator, _output_callback = None):
+def run(code: str, _input = default_generator, _output_callback = None):
     program = [*map(int, code.split(","))]
     _output = []
     jump = 0
@@ -106,7 +108,7 @@ async def run(code: str, _input = default_generator, _output_callback = None):
                 value = (program[pos] % len(program), 0)
                 if verbose:
                     print('"adress', program[pos],
-                          "("+str(program[pos]) + ')"')
+                            "("+str(program[pos]) + ')"')
             next_params.append(value)
             continue
         else:
@@ -119,12 +121,14 @@ async def run(code: str, _input = default_generator, _output_callback = None):
                     "params": next_params,
                 }})
                 old_pos = pos
-                old_output = _output
-                _mem, _input, _output, pos = await next_instruction(
+                old_output = _output[:]
+                _mem, _input, _output, pos = next_instruction(
                     program, _input, _output, pos, *next_params)
                 next_params = []
-                if _output_callback and old_output != _output:
-                    await _output_callback(_output)
+                if len(old_output) != len(_output): # and _output_callback
+                    # _output_callback(_output)
+                    if verbose: print("New output")
+                    yield _output[-1]
                 if old_pos != pos:
                     if verbose:
                         print("new pos!", pos, "(from", str(old_pos)+")")
@@ -137,11 +141,13 @@ async def run(code: str, _input = default_generator, _output_callback = None):
                 pass
     if verbose:
         print(_mem)
-    return _output
+    # return _output
+    # print(_output)
+    # yield _output[-1]
 
 def parse(code: str, _input: list = []):
     _input = default_generator(_input)
-    return asyncio.run(run(code, _input))
+    return list(run(code, _input))
 
 class Intcode:
     def __init__(self, code: str, async_input_generator = default_generator, output_callback = None):
@@ -151,11 +157,14 @@ class Intcode:
         self.output = None
         self.output_callback = output_callback
     
-    async def run(self):
-        self.output = await run(self.code, self.input_gen, self.output_callback)
+    def run(self):
+        self.output = run(self.code, self.input_gen, self.output_callback)
         return self.output
+    
+    def __repr__(self):
+        return str(self.output)
         
 
 if __name__ == "__main__":
     verbose = True
-    print(parse(input("Code: "), [int(input("Input: "))]))
+    print(parse(input("Code: "), [int(i) for i in input("Input: ").split(",")]))
